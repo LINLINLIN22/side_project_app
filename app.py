@@ -37,10 +37,10 @@ date_col = "timestamp"
 earliest_datetime = df.index.min()
 earliest_date = earliest_datetime.date()  # 只取日期部分
 
-USER_DATE = st.sidebar.date_input("選擇出發日期", value=earliest_date)
+USER_DATE = st.date_input("選擇出發日期", value=earliest_date)
 
 # USER_DATE = st.sidebar.date_input("選擇出發日期", value=df.index.min())
-USER_TIME = st.sidebar.time_input("選擇出發時間", value=datetime.min.time())
+USER_TIME = st.time_input("選擇出發時間", value=datetime.min.time())
 
 
 if USER_TIME != datetime.min.time():
@@ -115,7 +115,7 @@ if USER_TIME != datetime.min.time():
     st.pyplot(plt)
 
 else:
-    st.write("請指定出發時間")
+    st.write("請指定出發時間(只能選假日喔！)")
 
 # 將你從 Google My Maps → 「嵌入到網站」取得的 iframe 程式碼，貼在這裡
 iframe_code = '''
