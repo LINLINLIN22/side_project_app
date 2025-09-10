@@ -37,10 +37,34 @@ date_col = "timestamp"
 earliest_datetime = df.index.min()
 earliest_date = earliest_datetime.date()  # 只取日期部分
 
-USER_DATE = st.date_input("選擇出發日期", value=earliest_date)
+# USER_DATE = st.date_input("選擇出發日期", value=earliest_date)
+
+unique_dates = sorted(pd.Series(df.index.date).unique())
+USER_DATE = st.selectbox("選擇出發日期", unique_dates)
+
 
 # USER_DATE = st.sidebar.date_input("選擇出發日期", value=df.index.min())
-USER_TIME = st.time_input("選擇出發時間", value=datetime.min.time())
+# USER_TIME = st.time_input("選擇出發時間", value=datetime.min.time())
+
+# 唯一時間選項（從你的資料中整理後）
+time_options = [
+    "00:00" ,"05:55", "06:25", "06:30", "06:35", "06:55", "07:15", "07:20", "07:25", "07:55",
+    "08:10", "08:25", "08:50", "08:55", "09:00", "09:25", "09:40", "09:45", "09:50",
+    "10:10", "10:20", "10:25", "10:30", "10:35", "10:50", "10:55", "11:00", "11:20",
+    "11:25", "11:30", "11:35", "11:50", "11:55", "12:00", "12:25", "12:30", "12:55",
+    "13:00", "13:25", "13:30", "13:35", "13:55", "14:00", "14:25", "14:30", "14:35",
+    "14:55", "15:00", "15:15", "15:20", "15:25", "15:30", "15:35", "15:40", "15:55",
+    "16:00", "16:20", "16:25", "16:30", "16:35", "16:50", "16:55", "17:00", "17:15",
+    "17:20", "17:30", "17:40", "17:55", "18:00", "18:05", "18:25", "18:30", "18:45",
+    "18:55", "19:00", "19:05", "19:15", "19:25", "19:30", "19:35", "19:50", "20:00",
+    "20:05", "20:25", "20:30", "20:40", "21:00", "21:10", "21:20", "21:30", "22:00"
+]
+
+# 建立下拉選單
+selected_time = st.selectbox("選擇出發時間", time_options)
+
+USER_TIME = datetime.strptime(selected_time, "%H:%M").time()
+
 
 
 if USER_TIME != datetime.min.time():
