@@ -4,7 +4,35 @@ import streamlit.components.v1 as components
 from datetime import datetime, time,timedelta
 import matplotlib.pyplot as plt
 
-st.title("新竹客運：新竹-台中預計時間")
+
+## style
+
+# 自訂按鈕樣式
+st.markdown("""
+    <style>
+    .my-button {
+        display: inline-block;
+        padding: 0.75em 1.5em;
+        font-size: 16px;
+        font-weight: bold;
+        color: white;
+        background-color: #007BFF;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        margin-top: 10px;
+        transition: background-color 0.3s ease;
+    }
+    .my-button:hover {
+        background-color: #0056b3;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+
+## dataset
 
 # 用google map 量
 dis = {59:5.1,
@@ -19,32 +47,6 @@ sections_need = [59, 61,63,67,69,73,77,79]
 
 dfs ={}
 
-for sec in sections_need:
-    df = pd.read_csv(f"forecast/{sec}.csv")
-    dfs[sec] = df
-    if "timestamp" in dfs[sec].columns:
-        dfs[sec]['timestamp'] = pd.to_datetime(dfs[sec]['timestamp'], errors='coerce')
-        dfs[sec].set_index('timestamp', inplace=True)
-
-# 1. 上傳多個 CSV
-# uploaded_files = st.sidebar.file_uploader("請上傳 CSV 檔案", type="csv", accept_multiple_files=True)
-
-date_col = "timestamp"
-
-# USER_DATE = st.sidebar.date_input("選擇出發日期", value=df[date_col].min())
-
-# 假設 df 是你的 DataFrame，且 df.index 是 DatetimeIndex
-earliest_datetime = df.index.min()
-earliest_date = earliest_datetime.date()  # 只取日期部分
-
-# USER_DATE = st.date_input("選擇出發日期", value=earliest_date)
-
-unique_dates = sorted(pd.Series(df.index.date).unique())
-USER_DATE = st.selectbox("選擇出發日期", unique_dates)
-
-
-# USER_DATE = st.sidebar.date_input("選擇出發日期", value=df.index.min())
-# USER_TIME = st.time_input("選擇出發時間", value=datetime.min.time())
 
 # 唯一時間選項（從你的資料中整理後）
 time_options = [
@@ -60,23 +62,65 @@ time_options = [
     "20:05", "20:25", "20:30", "20:40", "21:00", "21:10", "21:20", "21:30", "22:00"
 ]
 
+
+## UIUX
+
+st.title("新竹客運：新竹-台中預計時間")
+
+
+for sec in sections_need:
+    df = pd.read_csv(f"forecast/{sec}.csv")
+    dfs[sec] = df
+    if "timestamp" in dfs[sec].columns:
+        dfs[sec]['timestamp'] = pd.to_datetime(dfs[sec]['timestamp'], errors='coerce')
+        dfs[sec].set_index('timestamp', inplace=True)
+
+# 1. 上傳多個 CSV
+# uploaded_files = st.sidebar.file_uploader("請上傳 CSV 檔案", type="csv", accept_multiple_files=True)
+
+date_col = "timestamp"
+
+# 假設 df 是你的 DataFrame，且 df.index 是 DatetimeIndex
+earliest_datetime = df.index.min()
+earliest_date = earliest_datetime.date()  # 只取日期部分
+
+# USER_DATE = st.date_input("選擇出發日期", value=earliest_date)
+
+unique_dates = sorted(pd.Series(df.index.date).unique())
+# USER_DATE = st.selectbox("選擇出發日期", unique_dates)
+
+
 # 建立下拉選單
-selected_time = st.selectbox("選擇出發時間", time_options)
+# selected_time = st.selectbox("選擇出發時間", time_options)
 
-USER_TIME = datetime.strptime(selected_time, "%H:%M").time()
+# USER_TIME = datetime.strptime(selected_time, "%H:%M").time()
+
+
+### AI
+
+with st.form(key="simulate_form"):
+    # 日期與時間選擇
+    USER_DATE = st.selectbox("選擇出發日期", unique_dates)
+    selected_time = st.selectbox("選擇出發時間", time_options)
+
+    # 使用 HTML 自訂按鈕，與 form_submit_button 搭配
+    submit_button = st.form_submit_button(
+        label="開始模擬 🚍", 
+    )
+
+    # st.markdown('<div class="my-button">請按上方「開始模擬 🚍」</div>', unsafe_allow_html=True)
 
 
 
-if USER_TIME != datetime.min.time():
-# if uploaded_files:
 
-    # dfs = {f.name: pd.read_csv(f) for f in uploaded_files}
-    # sections_need = ["59.csv", "61.csv","63.csv","67.csv","69.csv","73.csv","77.csv","79.csv"]
 
-    # df = dfs["59.csv"]
-    df = dfs[59]
-    # st.dataframe(df.head())
+# if USER_TIME != datetime.min.time():
+# if st.button("開始模擬🚍"):
+if submit_button:
 
+    USER_TIME = datetime.strptime(selected_time, "%H:%M").time()
+
+    df = dfs[79] # 用最後的section 才能防資料遺漏
 
     # st.write(f"{date_col}")
     # df[date_col] = pd.to_datetime(df[date_col], errors="coerce")
@@ -88,7 +132,11 @@ if USER_TIME != datetime.min.time():
     # 5. 比對並顯示符合條件的資料（範例：同一天）
     mask = df.index.date == dt.date()
     filtered = df[mask]
-    st.write(f"篩選出符合 {dt.date()} 的資料：{len(filtered)} 筆。")
+
+    if len(filtered) == 1440 :
+        st.write(f"篩選出符合 {dt.date()} 的資料：共{len(filtered)} 筆，資料完整。")
+    else:
+        st.write(f"篩選出符合 {dt.date()} 的資料：共{len(filtered)} 筆，資料不完整，注意真實性問題。")
     # st.dataframe(filtered)
 ####### 計算時間 
     # 增加20 min的市區緩衝時間
@@ -104,10 +152,11 @@ if USER_TIME != datetime.min.time():
 
         # 初始remain
         remain_section = dis[sec]
+        result = 0 # 重製 result 
 
         while remain_section >0:
 
-            result = df.loc[go2road, "predicted_TravelSpeed"]
+            result = df.loc[go2road + timedelta(minutes=road_min) , "predicted_TravelSpeed"]
 
             # 速限設置
             if result > 120 :
@@ -117,10 +166,12 @@ if USER_TIME != datetime.min.time():
 
             # 換成分速/km
             res_min = round(result/60,2)
-
             remain_section = remain_section - res_min
             road_min += 1
             road_speeds.append(result)
+
+            # # test
+            # st.write(f"result 的值:{result}")
         
     arrive_time = go2road + timedelta(minutes=road_min) +timedelta(minutes=25) # 下高架後花費時間
 
@@ -128,7 +179,8 @@ if USER_TIME != datetime.min.time():
     start_time = datetime.combine(USER_DATE, USER_TIME)
     waste_time = arrive_time - start_time
     st.write(f"預計抵達時間: {arrive_time}   總花費時間: {waste_time}")
-
+    # st.write("result 收集到的資料")
+    # st.dataframe(road_speeds)
     # 繪速度圖
     plt.figure(figsize=(10, 4))
     plt.plot(road_speeds, marker='o')
