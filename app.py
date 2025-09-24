@@ -75,8 +75,6 @@ for sec in sections_need:
         dfs[sec]['timestamp'] = pd.to_datetime(dfs[sec]['timestamp'], errors='coerce')
         dfs[sec].set_index('timestamp', inplace=True)
 
-# 1. 上傳多個 CSV
-# uploaded_files = st.sidebar.file_uploader("請上傳 CSV 檔案", type="csv", accept_multiple_files=True)
 
 date_col = "timestamp"
 
@@ -90,14 +88,6 @@ unique_dates = sorted(pd.Series(df.index.date).unique())
 # USER_DATE = st.selectbox("選擇出發日期", unique_dates)
 
 
-# 建立下拉選單
-# selected_time = st.selectbox("選擇出發時間", time_options)
-
-# USER_TIME = datetime.strptime(selected_time, "%H:%M").time()
-
-
-### AI
-
 with st.form(key="simulate_form"):
     # 日期與時間選擇
     USER_DATE = st.selectbox("選擇出發日期", unique_dates)
@@ -108,14 +98,8 @@ with st.form(key="simulate_form"):
         label="開始模擬 🚍", 
     )
 
-    # st.markdown('<div class="my-button">請按上方「開始模擬 🚍」</div>', unsafe_allow_html=True)
 
-
-
-
-
-# if USER_TIME != datetime.min.time():
-# if st.button("開始模擬🚍"):
+# 按下按鈕事件
 if submit_button:
 
     USER_TIME = datetime.strptime(selected_time, "%H:%M").time()
@@ -179,16 +163,33 @@ if submit_button:
     start_time = datetime.combine(USER_DATE, USER_TIME)
     waste_time = arrive_time - start_time
     st.write(f"預計抵達時間: {arrive_time}   總花費時間: {waste_time}")
+    ## test
     # st.write("result 收集到的資料")
     # st.dataframe(road_speeds)
-    # 繪速度圖
-    plt.figure(figsize=(10, 4))
-    plt.plot(road_speeds, marker='o')
-    plt.title('Travel Speed on Road Sections')
-    plt.xlabel('Minute')
-    plt.ylabel('Speed (km/h)')
-    plt.grid(True)
-    st.pyplot(plt)
+    # # 繪速度圖
+    # plt.figure(figsize=(10, 4))
+    # plt.plot(road_speeds, marker='o')
+    # plt.title('Travel Speed on Road Sections')
+    # plt.xlabel('Minute')
+    # plt.ylabel('Speed (km/h)')
+    # plt.grid(True)
+    # st.pyplot(plt)
+
+
+# 建立圖表
+    plt.rcParams['font.sans-serif'] = ['Microsoft JhengHei']  # 或其他支援中文字的字型
+    fig, ax = plt.subplots(figsize=(10, 4))
+    ax.plot(road_speeds, marker='o')
+
+    # 關閉 Y 軸的 offset 和科學記號
+    ax.ticklabel_format(style='plain', axis='y', useOffset=False)
+
+    # 設定標題與座標軸標籤
+    ax.set_title('客運在國道上的平均速度預估')
+    ax.set_xlabel('Minute')
+    ax.set_ylabel('Speed (km/h)')
+    ax.grid(True)
+    st.pyplot(fig) 
 
 else:
     st.write("請指定出發時間(只能選假日喔！)")
